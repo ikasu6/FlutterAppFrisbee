@@ -1,92 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-  static const String _title = 'Flutter Stateful Clicker Counter';
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: _title,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Team5 Frisbee'),
+        ),
+        body: CenteredButton(),
       ),
-      home: MyHomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-  // This class is the configuration for the state.
+class CenteredButton extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _CenteredButtonState createState() => _CenteredButtonState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _CenteredButtonState extends State<CenteredButton> {
+  String _responseText = '';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  Future<void> _fetchData() async {
+    final response = await http.get(Uri.parse(
+        'https://project6-168ik-default-rtdb.firebaseio.com/users.json?auth=AIzaSyBNKX23903F-vUtzV9JS9Ez6KVutINAGug'));
+    if (response.statusCode == 200) {
+      var s = jsonDecode(response.body);
+      var A = (s["-NUuuO5NA7RrAcYkGQwd"]).toString();
+      A = A.replaceAll(new RegExp(r'{'), '');
+      A = A.replaceAll(new RegExp(r'null'), '');
+      A = A.replaceAll(new RegExp(r'}'), '');
+      // var B = (s["-NUvI2EeoRboeH2CQB2F"]).toString();
+      // B = B.replaceAll(new RegExp(r'{'), '');
+      // B = B.replaceAll(new RegExp(r'}'), '');
+      setState(() {
+        _responseText = _responseText + A;
+      });
+    } else {
+      throw Exception('Failed to load data');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text('Flutter Demo Click Counter'),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: TextStyle(fontSize: 25),
-            ),
-          ],
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ElevatedButton(
+          onPressed: _fetchData,
+          child: Text('Fetch Acc Data'),
+          style: ElevatedButton.styleFrom(
+            primary: Color(0xd2102552),
+            onPrimary: Colors.white,
+            textStyle: TextStyle(fontSize: 20),
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ),
+        SizedBox(height: 20),
+        Text(
+          _responseText,
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 }
-
